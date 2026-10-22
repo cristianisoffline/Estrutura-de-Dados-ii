@@ -1,0 +1,122 @@
+
+# Sistema de atendimento de um hospital (FILA DE ATENDIMENTO)
+
+
+# dados do paciente: nome, idade e prioridade
+class Paciente:
+
+    def __init__(self, nome, idade, prioridade):
+        self.nome = nome
+        self.idade = idade
+        self.prioridade = prioridade  # "Normal" ou "Prioridade"
+
+    def __str__(self):
+        return f"{self.nome} — {self.idade} anos — {self.prioridade}"
+
+
+# Nó da fila: dado do paciente e se guarda o endereço do próximo nó
+class Node:
+
+    def __init__(self, paciente):
+        self.paciente = paciente
+        self.proximo = None
+
+
+# Fila de atendimento
+# Pacientes "normais" entram no fim
+# Pacientes com prioridade tem a prefêrencia de atendimento (Até o último prioritario presente, mantendo a ordem dentro do grupo prioritário)
+
+class FilaAtendimento:
+    def __init__(self):
+        self.inicio = None
+        self.fim = None
+        self._tamanho = 0
+
+    def fila_vazia(self):
+        return self.inicio is None
+
+    def tamanho(self):
+        return self._tamanho
+
+    def adicionar(self, paciente):
+        novo_no = Node(paciente)
+
+        if self.inicio is None:
+            # Quando a fila está vazia, o inicio e o final é a mesma coisa.
+            self.inicio = novo_no
+            self.fim = novo_no
+
+        # Se o paciente for de fato PRIORIDADE:
+        elif paciente.prioridade == "Prioridade":
+            if self.inicio.paciente.prioridade != "Prioridade":
+                # Não há nenhum prioritário na frente, logo, vai para o início.
+                novo_no.proximo = self.inicio
+                self.inicio = novo_no
+            else:
+                # Anda até o último prioritário em sequência, para inserir
+                # logo depois dele (preservando ordem de chegada entre
+                # prioritários) e antes do primeiro paciente normal.
+                atual = self.inicio
+                while (atual.proximo is not None
+                       and atual.proximo.paciente.prioridade == "Prioridade"):
+                    atual = atual.proximo
+                novo_no.proximo = atual.proximo
+                atual.proximo = novo_no
+                if novo_no.proximo is None:
+                    self.fim = novo_no
+
+        # Paciente normal, vai para o final fila
+        else:
+            self.fim.proximo = novo_no
+            self.fim = novo_no
+
+        # incrementa o tamanho da fila quando alguém é inserido
+        self._tamanho += 1
+
+
+    # Atendimento: aqui um paciente é atendido (se estiver vazio, no caso a fila estiver acabado, retorna NONE)
+    def atender(self):
+        if self.fila_vazia():
+            return None
+
+        paciente = self.inicio.paciente
+        self.inicio = self.inicio.proximo
+        # se o inicio for None o fim tbm é (ou seja a fila acabou)
+        if self.inicio is None:
+            self.fim = None
+        self._tamanho -= 1 # decrementa o tamanho da fila a cada atendimento
+        return paciente
+
+
+    # listagem dos pacientes
+    def listar(self):
+        if self.fila_vazia():
+            print("(fila vazia)")
+            return
+        atual = self.inicio
+        while atual is not None: # Enquanto a fila não chegar ao fim (vá mostrando os pacientes)
+            print(atual.paciente)
+            atual = atual.proximo
+
+
+
+def sistema_de_atendimento_hospitalar():
+    fila = FilaAtendimento() # Criando a fila
+
+    # adicionando pacientes na fila
+    fila.adicionar(Paciente("Antonio", 70, "Prioridade"))
+    fila.adicionar(Paciente("Bruno", 15, "Normal"))
+    fila.adicionar(Paciente("Karol", 20, "Normal"))
+    fila.adicionar(Paciente("Elza", 65, "Prioridade"))
+    fila.adicionar(Paciente("Maria de Fatima", 35, "Prioridade"))
+
+
+    fila.listar() # Ordem de atendimento
+
+    paciente = fila.atender() # atende um paciente
+    print(f"{paciente.nome} está em atendimento:")
+
+if __name__ == "__main__":
+
+    print("\nSistema de atendimento hospitalar (FILA DE ATENDIMENTO)\n")
+    sistema_de_atendimento_hospitalar()
